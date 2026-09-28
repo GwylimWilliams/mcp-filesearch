@@ -1,11 +1,11 @@
 {
-  "name": "__name__",
+  "name": "mcp-filesearch",
   "version": "0.1.0",
   "description": "An MCP server built from the mcp-base template.",
   "type": "module",
   "license": "MIT",
   "bin": {
-    "__name__": "dist/index.js"
+    "mcp-filesearch": "dist/index.js"
   },
   "engines": {
     "node": ">=22"
