@@ -1,0 +1,28 @@
+{
+  "name": "__name__",
+  "version": "0.1.0",
+  "description": "An MCP server built from the mcp-base template.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "__name__": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.2.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.2.0",
+    "@types/node": "^24.0.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}
