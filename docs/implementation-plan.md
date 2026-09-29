@@ -25,7 +25,7 @@ Each phase is self-contained: it lists what already exists, what to build, the e
 | 1 | `list_allowed_dirs` | **complete** — 2026-09-29 | `55a7fea` | build+test green (6 files, 46 tests); probe lists both tools with read-only hints intact; call returns the resolved roots; no subprocess (rg not imported by any tool); CI `36562339931` green (22+24) |
 | 2 | `list_matching_files` | **complete** — 2026-09-29 | `a070ff0` | build+test green (7 files, 69 tests); probe lists three tools with read-only hints; real-client `tools/call` returns `a.md` with `.git` secret absent; invalid glob → clean error (rg exit 2, recorded); no-match → empty list; CI `36564039822` green (22+24) after `383d6d5` installs rg |
 | 3 | `count_matches` | **complete** — 2026-09-29 | `b6ea232` | build+test green (8 files, 98 tests); probe lists four tools with read-only hints; real-client `tools/call` matches a manual `rg -c` (a.md:1, b.md:2, total 3; `.git` secret absent); invalid pattern → clean error (rg exit 2); no-match → empty counts; smuggled `--pre=touch` pattern → zero matches, canary absent; 5,000-match fixture → single small count; `--with-filename` correction recorded in Phase 3; CI `36565059089` green (22+24) |
-| 4 | `search_content` | not started | — | open decisions to settle first |
+| 4 | `search_content` | **complete** — 2026-09-29 | `eed272b` | build+test green (9 files, 144 tests); probe lists five tools with read-only hints; real-client `tools/call` returns a.md (line 1, column 7) and b.md (lines 1–2) — the same three lines a manual `rg --json` reports — with `.git`/`.chrome-data` secrets absent; `contextLines: 1` returns the neighbour line; traversal rejected pre-spawn (no `exited with code` in the error); ⚠️ two rg-JSON corrections recorded in Phase 4 (`lines.text` is plain UTF-8, not base64; submatch offsets are bytes); CI `36572607545` green (22+24) |
 | 5 | Security test suite (`test/security.test.ts`) | not started | — | |
 | 6 | Packaging & 1MCP registration verification | not started | — | gateway entry already exists |
 
@@ -308,13 +308,20 @@ Three deliberate details:
 
 **Parsing the `--json` stream:** line-delimited JSON events — `begin` (path), `match` (line_number, `lines.text` base64, `submatches[]` with `start`/`end`), `context`, `end`, `summary`. For each `match`: file from the open `begin`; `line` from `line_number`; `text` = base64-decode `lines.text`, strip the trailing newline, then **code-cap at ~500 chars**; `column` from the first submatch (see open decisions). Treat missing/odd fields defensively (skip the entry) — binary files and invalid UTF-8 must not crash the parser. Apply `maxResults` **in code after parsing** — rg's `--max-count` is per-file, not global — and set `truncated: true` when the cap bites.
 
-### Open decisions — settle before implementing
+### Open decisions — settled at phase start (2026-09-29)
 
-The spec under-specifies these; recommendation in each case, confirm at phase start:
+The spec under-specifies these; all three recommendations were adopted as written:
 
 1. **`contextLines` output shape.** The declared output has no place to put context lines, but `-C` makes rg emit them. *Recommended:* add an **optional** `context?: { line: number, text: string }[]` to each match (declared in `outputSchema`), populated from adjacent `context` events; `contextLines` still 0–10.
 2. **Multiple matches on one line.** *Recommended:* one entry per **line**, `column` = first submatch's start + 1; `count` therefore counts lines, consistent with `--max-columns` and with "thousands of lines → exactly `maxResults` entries".
 3. **Control characters in returned text.** The rationale note flags file content as untrusted input. *Recommended:* strip C0 control chars except `\t` from `text` before returning.
+
+⚠️ **Corrections from probing rg 15.2.0's `--json` (verified at implementation; the argv above is unchanged):**
+
+1. **`lines.text` is not base64.** The printer emits a plain UTF-8 JSON string under `text`, and uses base64 only under `bytes`, which it emits when the line is not valid UTF-8 (`path` follows the same `text`/`bytes` convention). The parser reads `text` as-is and base64-decodes `bytes` when present; a line with invalid UTF-8 is returned lossily, with U+FFFD replacement characters. Confirmed empirically and against ripgrep's JSON printer documentation.
+2. **Submatch `start`/`end` are byte offsets into `lines`** (a `café` line reports `start: 6` where the character column is 5). The returned `column` counts code points of the rendered prefix + 1, so it indexes the returned `text` — including after control-character stripping, which would otherwise shift it.
+3. **`--max-columns 500` does not truncate `--json` line text** (a 5,107-character line came back whole), so the code-side 500-character cap is the only effective bound; when it bites it sets `truncated: true`, as does the `maxResults` cap. `count` is the total number of matching lines found, capped entries included (mirrors `count_matches.total`).
+4. Binary files named explicitly are searched and matched without extra flags; NULs and other C0 controls are removed from returned text by decision 3's rule.
 
 **Tests** (fixture tree): known literal phrase → right file/line/text; `fixedStrings: true` with `a.b[` matches literally; `pattern: "(a+)+$"` completes well under a second; thousands of matching lines → exactly `maxResults` entries + `truncated: true`; `pattern: "--pre=touch /tmp/pwned"` returns zero matches and `/tmp/pwned` does not exist afterwards; a 5,000-char line returns text capped at ~500 chars; binary file and invalid UTF-8 do not crash; `path: "../../etc/passwd"` rejected **before** any subprocess runs; schema rejections per input (incl. `contextLines: 11`, `maxResults: 501`).
 
