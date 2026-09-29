@@ -13,7 +13,11 @@ afterEach(async () => {
 
 it("completes the handshake and lists the registered tools, get_datetime's contract intact", async () => {
   const { tools } = await mcp.client.listTools();
-  expect(tools.map((tool) => tool.name)).toEqual(["get_datetime", "list_allowed_dirs"]);
+  expect(tools.map((tool) => tool.name)).toEqual([
+    "get_datetime",
+    "list_allowed_dirs",
+    "list_matching_files",
+  ]);
 
   const tool = tools[0];
   expect(tool?.annotations).toEqual({ readOnlyHint: true, openWorldHint: false });

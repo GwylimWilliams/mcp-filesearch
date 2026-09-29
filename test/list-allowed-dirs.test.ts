@@ -27,7 +27,11 @@ describe("list_allowed_dirs", () => {
 
   it("is listed with read-only annotations and an empty input schema", async () => {
     const { tools } = await mcp.client.listTools();
-    expect(tools.map((tool) => tool.name)).toEqual(["get_datetime", "list_allowed_dirs"]);
+    expect(tools.map((tool) => tool.name)).toEqual([
+      "get_datetime",
+      "list_allowed_dirs",
+      "list_matching_files",
+    ]);
 
     const tool = tools.find((candidate) => candidate.name === "list_allowed_dirs");
     expect(tool?.annotations).toEqual({ readOnlyHint: true, openWorldHint: false });
