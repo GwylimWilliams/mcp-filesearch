@@ -148,6 +148,7 @@ describe("list_matching_files", () => {
         "get_datetime",
         "list_allowed_dirs",
         "list_matching_files",
+        "count_matches",
       ]);
 
       const tool = tools.find((candidate) => candidate.name === "list_matching_files");
