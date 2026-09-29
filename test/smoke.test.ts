@@ -18,6 +18,7 @@ it("completes the handshake and lists the registered tools, get_datetime's contr
     "list_allowed_dirs",
     "list_matching_files",
     "count_matches",
+    "search_content",
   ]);
 
   const tool = tools[0];

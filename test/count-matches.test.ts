@@ -201,6 +201,7 @@ describe("count_matches", () => {
         "list_allowed_dirs",
         "list_matching_files",
         "count_matches",
+        "search_content",
       ]);
 
       const tool = tools.find((candidate) => candidate.name === "count_matches");
