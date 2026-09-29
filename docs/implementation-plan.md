@@ -24,7 +24,7 @@ Each phase is self-contained: it lists what already exists, what to build, the e
 | 0 | Scaffold completion: roots, CLI args, rg seam, doc/identity cleanup, npx check | **complete** — 2026-09-29 | `a1efbfe` | build+test green (5 files, 43 tests); probe lists exactly `get_datetime`; no-arg usage exits 1; `child_process` seam grep clean; template-ref grep clean; npx check green (local ignore-scripts override); CI `36560803824` green (22+24) |
 | 1 | `list_allowed_dirs` | **complete** — 2026-09-29 | `55a7fea` | build+test green (6 files, 46 tests); probe lists both tools with read-only hints intact; call returns the resolved roots; no subprocess (rg not imported by any tool); CI `36562339931` green (22+24) |
 | 2 | `list_matching_files` | **complete** — 2026-09-29 | `a070ff0` | build+test green (7 files, 69 tests); probe lists three tools with read-only hints; real-client `tools/call` returns `a.md` with `.git` secret absent; invalid glob → clean error (rg exit 2, recorded); no-match → empty list; CI `36564039822` green (22+24) after `383d6d5` installs rg |
-| 3 | `count_matches` | not started | — | |
+| 3 | `count_matches` | **complete** — 2026-09-29 | `b6ea232` | build+test green (8 files, 98 tests); probe lists four tools with read-only hints; real-client `tools/call` matches a manual `rg -c` (a.md:1, b.md:2, total 3; `.git` secret absent); invalid pattern → clean error (rg exit 2); no-match → empty counts; smuggled `--pre=touch` pattern → zero matches, canary absent; 5,000-match fixture → single small count; `--with-filename` correction recorded in Phase 3; CI `36565059089` green (22+24) |
 | 4 | `search_content` | not started | — | open decisions to settle first |
 | 5 | Security test suite (`test/security.test.ts`) | not started | — | |
 | 6 | Packaging & 1MCP registration verification | not started | — | gateway entry already exists |
@@ -250,7 +250,7 @@ Argv:
 
 ```
 [countLines ? '-c' : '--count-matches',
- '--no-heading', '--no-ignore-vcs',
+ '--no-heading', '--with-filename', '--no-ignore-vcs',
  ...(glob ? ['-g', glob] : []),
  '-g', '!**/.git/**', '-g', '!**/.chrome-data/**',
  ...(fixedStrings ? ['-F'] : []),
@@ -260,6 +260,7 @@ Argv:
 ```
 
 - This is the **only** place rg's text output is parsed, and it is safe because `-c`/`--count-matches` emit exactly one stable `path:count` line per matching file. Parse by splitting on the **last** `:` (paths may contain colons; rg prints `path:count`). Everything else in this project uses `--json`.
+- ⚠️ **Correction (Phase 3; the spec's argv omits it):** the argv also carries `--with-filename`. Verified on rg 15.2.0: without it, `-c` against an explicit **single file** prints a bare count with no path at all (rg omits the filename for single-file searches, as grep does), so the `path:count` parse cannot hold for that input. With it, every line is `path:count` — colons in paths included.
 - `total` = sum over **all** counts; the returned `counts` array is capped at 500 entries with `truncated: true` (decide-at-start: the spec fixes no number for this tool; 500 matches the list cap).
 - Empty result → `{ counts: [], total: 0, truncated: false }`; exit 1 from rg is normal here (no matches).
 - Bounds (proposed): `pattern` `.min(1).max(1000)`, `glob` `.min(1).max(500)`, `path` `.min(1)`.
