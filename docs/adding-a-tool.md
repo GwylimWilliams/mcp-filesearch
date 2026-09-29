@@ -84,15 +84,15 @@ Two absolutes: the handler never throws — anything fallible is caught and turn
 One line in `src/tools/index.ts`:
 
 ```ts
-export function registerTools(server: McpServer): void {
+export function registerTools(server: McpServer, roots: readonly string[]): void {
   registerGetDatetime(server);
-  registerYourTool(server); // ← the whole seam
+  registerYourTool(server, roots); // ← the whole seam
 }
 ```
 
 ## 7 · Test it
 
-In `test/`, driven through the SDK's own client over an in-memory transport — `connect()` from `test/harness.ts`; never a spawned process.
+In `test/`, driven through the SDK's own client over an in-memory transport — `connect(roots)` from `test/harness.ts`; never a spawned server.
 
 - a success test per meaningful case, asserting on `structuredContent`
 - one test proving the text payload is the JSON mirror of it
@@ -109,11 +109,11 @@ npm run build && npm test
 
 Then check it through a real client: the tool appears, its annotations arrive intact, and a call returns the output you designed. `npm test` proves the code; only a real client proves the wiring.
 
-## When the tool backs onto a subprocess (v0.2.0)
+## When the tool backs onto a subprocess
 
-Two steps change, and they are the ones this template cares most about:
+Two steps change, and they are the ones this server cares most about:
 
 - **argv construction is added.** Build the argument array in code — flags first, `--` before the positional path, and the user's pattern in a named slot (`-e pattern`) so a value beginning with `-` can never be read as a flag.
-- **Path validation precedes the call.** `realpath` the path, assert it is inside an allowed root, then run.
+- **Path validation precedes the call.** `resolveInRoots` from `src/roots.ts` — `realpath`, assert inside an allowed root, then run.
 
-Until that layer exists, a tool that needs a subprocess does not belong in this repo.
+The layer exists: `src/rg.ts` is the one subprocess seam, and `CONVENTIONS.md` → Subprocess rules is the rule list a new tool must satisfy.

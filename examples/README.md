@@ -2,7 +2,7 @@
 
 There is no copy of the example tool here, deliberately.
 
-The template's worked example is **live in the repository**, which is what lets `npm test` on a fresh clone prove the conventions against real code instead of an empty suite:
+The worked example is **live in the repository**, which is what lets `npm test` prove the conventions against real code instead of an empty suite:
 
 | File | What it demonstrates |
 | --- | --- |
@@ -13,4 +13,4 @@ The template's worked example is **live in the repository**, which is what lets 
 
 A copy under `examples/` would drift from the code it claims to demonstrate; a live example cannot drift from itself.
 
-Instantiation removes the example and its tests, so the generated project is example-free; `docs/adding-a-tool.md` is the walkthrough that replaces it.
+`get_datetime` is retained here permanently as the liveness probe — when a client can call it, the process is up and the SDK surface is intact. `docs/adding-a-tool.md` is the walkthrough for the tools that join it.

@@ -1,21 +1,12 @@
-# mcp-base
+# mcp-filesearch
 
-The template every MCP server here is instantiated from: a stdio server with one `registerTools` seam, structured output, and annotation presets so a tool cannot be written without carrying its safety hints.
+A read-only, root-scoped filesystem search MCP server. It wraps ripgrep (`rg`) behind a small set of bounded tools — file listing, match counting, content search — always confined to the roots passed on the command line: never a shell, never a write.
 
-It is also the cheap place to retire SDK unknowns. The `get_datetime` example exists to exercise the SDK v2 surface end to end — handshake, annotations, structured output, schema rejection — so the servers that matter don't discover those on their own.
-
-## Status
-
-| Tag | What it is |
-| --- | --- |
-| `v0.1.0` (current) | Proving ground — scaffold, example tool, tool-level tests |
-| `v0.2.0` | The backport — single subprocess seam, root/path validation, security test suite |
-
-Still to land before `v0.1.0` is tagged: the 1MCP wiring proof, `scripts/instantiate.ts`, the SDK-drift test and dependabot. The design notes live in Trilium.
+**Status: under construction, phase by phase.** [`docs/implementation-plan.md`](docs/implementation-plan.md) is the canonical plan and records what has landed. Today the server ships `get_datetime` as its liveness probe; the search tools arrive phase by phase behind the security rules in [`CONVENTIONS.md`](CONVENTIONS.md).
 
 ## Requirements
 
-Node ≥ 22. CI runs 22 and 24; `.node-version` pins 24 for local mise users.
+Node ≥ 22; CI runs 22 and 24, and `.node-version` pins 24 for local mise users. The search tools spawn `rg`, which CI runners ship.
 
 ## Develop
 
@@ -25,29 +16,27 @@ npm run build
 npm test
 ```
 
-`npm test` runs vitest against `src/` through the SDK's own client over an in-memory transport, so no build and no spawned process are involved. `npm run build` is only needed for the `bin` entry and for `npx` over GitHub.
+`npm test` runs vitest against `src/` through the SDK's own client over an in-memory transport, so no build is needed to test. `npm run build` is needed for the `bin` entry and for `npx` over GitHub.
 
-## Instantiate
+## Run
 
-1. **Use this template** on GitHub — a fork would share history, which is not what you want.
-2. Run the instantiation script. It substitutes `__name__` and reports every replacement point it could not infer; the substitution contract lives in `src/placeholders.ts`. Until the script lands, substitute those points by hand.
-3. Delete the example: `src/tools/get-datetime.ts`, its line in `src/tools/index.ts`, and its tests in `test/`.
+```
+node dist/index.js /path/to/search [another/root ...]
+```
 
-Then add the first real tool — see [AGENTS.md](AGENTS.md) for the checklist.
+At least one allowed root is required — there is no default and no `cwd` fallback. Roots are `realpath`ed at startup and duplicates collapse; every path a tool touches is validated against them before anything runs.
 
 ## Register with 1MCP
 
 ```json
-"mcpbase": {
+"filesearch": {
   "command": "npx",
-  "args": ["-y", "github:GwylimWilliams/mcp-base"],
-  "tags": ["test"]
+  "args": ["-y", "github:GwylimWilliams/mcp-filesearch", "/path/to/search"],
+  "tags": ["notes", "search"]
 }
 ```
 
-The `prepare` script builds on install, which is what makes `npx -y github:…` work without a published package.
-
-When a server takes scoped roots, they are passed as **CLI args after the repo** — never `cwd`, so the scoping holds whatever directory the gateway happens to run in.
+Scoped roots are passed as **CLI args after the repo** — never `cwd`, so the scoping holds whatever directory the gateway happens to run in. The `prepare` script builds on install, which is what makes `npx -y github:…` work without a published package.
 
 ## The rules
 

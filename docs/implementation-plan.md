@@ -21,7 +21,7 @@ Each phase is self-contained: it lists what already exists, what to build, the e
 
 | Phase | Deliverable | State | Commit | Notes |
 | --- | --- | --- | --- | --- |
-| 0 | Scaffold completion: roots, CLI args, rg seam, doc/identity cleanup, npx check | **in progress** — items 0.1–0.3 verified already; see §Phase 0 | — | baseline `3349e41` |
+| 0 | Scaffold completion: roots, CLI args, rg seam, doc/identity cleanup, npx check | **complete** — 2026-09-29 | — | build+test green (5 files, 43 tests); probe lists exactly `get_datetime`; no-arg usage exits 1; `child_process` seam grep clean; template-ref grep clean |
 | 1 | `list_allowed_dirs` | not started | — | |
 | 2 | `list_matching_files` | not started | — | |
 | 3 | `count_matches` | not started | — | |
@@ -145,7 +145,7 @@ The spec's command is correct as written; on **this machine** it needs lifecycle
 
 ### 0.5 — Doc & identity cleanup (full)
 
-The spec's check is **"no remaining `mcp-base` references anywhere in the tree"**. Current offenders and their treatment:
+The spec's check is **"no remaining `mcp-base` references anywhere in the tree"** — applied everywhere except this plan document, which deliberately names `mcp-base` as the backport target. Current offenders and their treatment:
 
 1. `README.md` — rewrite for this project: what it is (read-only, root-scoped filesystem search over `rg`), status pointer to this plan, dev loop, and the 1MCP registration snippet **using the git-URL form and the root as a CLI arg** (never `cwd`).
 2. `AGENTS.md` — intro reframed to this repo (instantiated *from* mcp-base, but no "here" ambiguity); update "nothing here spawns a process today" once `rg.ts` lands; "Not yet proven… 1MCP handshake" → record the verified facts (protocol 2025-11-25; annotations/structured output already tabulated; the npx `ignore-scripts` caveat).
@@ -154,7 +154,7 @@ The spec's check is **"no remaining `mcp-base` references anywhere in the tree"*
 5. `examples/README.md` — the example is **retained** (liveness probe), not deleted at instantiation; fix that sentence.
 6. `package.json:4` — description → "Read-only, root-scoped filesystem search MCP server." (or similar).
 7. Delete `src/placeholders.ts` (template substitution machinery; unused here — nothing imports it).
-8. Verify: `git grep -nE "mcp-base|mcpbase|__name__"` → **empty**; rebuild so the stale `dist/placeholders.js` disappears.
+8. Verify: `git grep -nE "mcp-base|mcpbase|__name__" -- . ':!docs/implementation-plan.md'` → **empty** (the pathspec excludes this plan — see above); rebuild so the stale `dist/placeholders.js` disappears.
 
 ### Phase 0 acceptance — then **stop and report**
 
@@ -166,7 +166,7 @@ The spec's check is **"no remaining `mcp-base` references anywhere in the tree"*
 - [ ] `roots.ts` tests: traversal, absolute-outside, symlink-outside all rejected.
 - [ ] `rg.ts` tests: exit 0 resolves; exit 1 resolves with empty output; exit 2 rejects; timeout kills the child and rejects cleanly.
 - [ ] `npm_config_ignore_scripts=false npx -y github:GwylimWilliams/mcp-filesearch /tmp` starts and lists `get_datetime` (the override is this machine's npmrc caveat; cold cache ~1–2 min). Verified working on 2026-09-29.
-- [ ] `git grep -nE "mcp-base|mcpbase|__name__"` → empty.
+- [ ] `git grep -nE "mcp-base|mcpbase|__name__" -- . ':!docs/implementation-plan.md'` → empty (this plan excluded by design).
 
 **Kickoff prompt for a new session:** *"Read docs/implementation-plan.md and implement Phase 0 exactly. Run its acceptance checks, update the status table, commit to main, then stop and report."*
 

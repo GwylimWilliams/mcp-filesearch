@@ -36,8 +36,8 @@ export function textOf(result: CallToolResult): string {
   return result.content.map((block) => (block.type === "text" ? block.text : "")).join("\n");
 }
 
-export async function connect(): Promise<Harness> {
-  const server = createServer();
+export async function connect(roots: readonly string[]): Promise<Harness> {
+  const server = createServer(roots);
   const client = new Client({ name: "test-harness", version: "0.1.0" });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
 

@@ -16,7 +16,7 @@ describe("get_datetime", () => {
 
   beforeEach(async () => {
     useFrozenClock();
-    mcp = await connect();
+    mcp = await connect(["/tmp"]);
   });
 
   afterEach(async () => {

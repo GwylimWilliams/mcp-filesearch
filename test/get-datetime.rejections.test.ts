@@ -6,7 +6,7 @@ describe("get_datetime rejections", () => {
 
   beforeEach(async () => {
     useFrozenClock();
-    mcp = await connect();
+    mcp = await connect(["/tmp"]);
   });
 
   afterEach(async () => {

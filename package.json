@@ -1,7 +1,7 @@
 {
   "name": "mcp-filesearch",
   "version": "0.1.0",
-  "description": "An MCP server built from the mcp-base template.",
+  "description": "Read-only, root-scoped filesystem search MCP server.",
   "type": "module",
   "license": "MIT",
   "bin": {

@@ -4,7 +4,7 @@ import { connect, type Harness } from "./harness.js";
 let mcp: Harness;
 
 beforeEach(async () => {
-  mcp = await connect();
+  mcp = await connect(["/tmp"]);
 });
 
 afterEach(async () => {
