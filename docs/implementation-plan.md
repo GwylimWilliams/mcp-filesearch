@@ -21,7 +21,7 @@ Each phase is self-contained: it lists what already exists, what to build, the e
 
 | Phase | Deliverable | State | Commit | Notes |
 | --- | --- | --- | --- | --- |
-| 0 | Scaffold completion: roots, CLI args, rg seam, doc/identity cleanup, npx check | **complete** — 2026-09-29 | — | build+test green (5 files, 43 tests); probe lists exactly `get_datetime`; no-arg usage exits 1; `child_process` seam grep clean; template-ref grep clean |
+| 0 | Scaffold completion: roots, CLI args, rg seam, doc/identity cleanup, npx check | **complete** — 2026-09-29 | `a1efbfe` | build+test green (5 files, 43 tests); probe lists exactly `get_datetime`; no-arg usage exits 1; `child_process` seam grep clean; template-ref grep clean; npx check green (local ignore-scripts override); CI `36560803824` green (22+24) |
 | 1 | `list_allowed_dirs` | not started | — | |
 | 2 | `list_matching_files` | not started | — | |
 | 3 | `count_matches` | not started | — | |
